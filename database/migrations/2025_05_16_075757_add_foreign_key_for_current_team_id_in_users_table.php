@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,15 +14,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // ✅ Consulta reescrita para MySQL
         DB::statement('
-            update users
-            set current_team_id = null
-            where id in (
-                select users.id from users
-                left join organizations on users.current_team_id = organizations.id
-                where users.current_team_id is not null and organizations.id is null
-            )
+            UPDATE users
+            LEFT JOIN organizations ON users.current_team_id = organizations.id
+            SET users.current_team_id = NULL
+            WHERE users.current_team_id IS NOT NULL AND organizations.id IS NULL
         ');
+
         Schema::table('users', function (Blueprint $table): void {
             $table->foreign('current_team_id', 'organizations_current_organization_id_foreign')
                 ->references('id')
